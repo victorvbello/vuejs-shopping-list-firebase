@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Shopping List</title>
+</head>
+<body>
+	<div id="app-vue">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-xs-8 col-xs-offset-2">
+					<h3 class="text-center">Lista de compras del día <b>({{today.es}})</b></h1>
+					<add-item 
+						v-bind:types="typesOfItems" 
+						v-bind:date="today.en"
+						v-bind:save-function="saveItem"
+						v-bind:item-edit="itemEdit"></add-item>
+					<item-list 
+						v-bind:types="typesOfItems" 
+						v-bind:items="items" 
+						v-bind:date="today.en"
+						v-on:update-item="updateItem"
+						v-on:complete-item="completeItem"
+						v-on:delete-item="removeItem"></item-list>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+	<template id="add-item">
+		<form class="form-horizontal" v-on:submit.prevent="saveItem">
+			<div class="form-group">
+    		<label class="col-xs-2 control-label">Nombre:</label>
+		    <div class="col-xs-10">
+		      <input type="text" class="form-control" placeholder="Nombre del item" v-model="item.name">
+		    </div>
+	  	</div>
+	  	<div class="form-group">
+    		<label class="col-xs-2 control-label">Tipo:</label>
+		    <div class="col-xs-10">
+		      <select class="form-control" v-model="item.type">
+		      	<option v-for="(type,index) in types" v-bind:value="index">{{type}}</option>
+		      </select>
+		    </div>
+	  	</div>
+	  	<div class="form-group">
+    		<label class="col-xs-2 control-label">Cantidad:</label>
+		    <div class="col-xs-10">
+		      <input type="number" class="form-control" placeholder="N° de Items" v-model="item.acount">
+		    </div>
+	  	</div>
+	  	<div class="form-group">
+		    <div class="col-xs-12 text-right">
+		      <button class="btn btn-success" type="submit">{{(isNew?'Guardar':'Editar')}}</button>
+		    </div>
+	  	</div>
+		</form>
+	</template>
+
+	<template id="item-list">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<div class="row">
+					<label class="col-xs-2 control-label">Filtros:</label>
+			    <div class="col-xs-5">
+			      <input type="date" class="form-control" placeholder="Fecha" v-model="dateList">
+			    </div>
+			    <div class="col-xs-5">
+			      <input type="text" class="form-control" placeholder="Nombre de Item" v-model="nameItem">
+			    </div>
+				</div>
+			</div>
+			<div class="panel-body">
+				<ul class="list-group">
+				  <li class="list-group-item" v-for="(item,index)  in filterList">
+				  	<div class="row">
+				  		<div class="col-xs-8">
+				  			<span class="label label-default">{{item.acount}}</span>
+				  			<span v-bind:style="(item.completed)?styles.through:''">{{item.name}}</span>
+				  			<span class="label label-info">{{typeList[item.type]}}</span>
+				  		</div>
+				  		<div class="col-xs-4">
+			  				<div class="pull-right">
+			  					<button class="glyphicon glyphicon-pencil btn btn-primary btn-xs" v-on:click="editItem(item)"></button>
+			  					<button class="glyphicon glyphicon-ok btn btn-success btn-xs" 
+			  						v-bind:class="{disabled:item.completed}" 
+			  						v-on:click="checkItem(item)"></button>
+			  					<button class="glyphicon glyphicon-remove btn btn-danger btn-xs" v-on:click="deleteItem(index)"></button>
+			  				</div>
+				  		</div>
+				  	</div>
+				  </li>
+				</ul>
+			</div>
+		</div>
+	</template>
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+  <script type="text/javascript" src="./js/main.js"></script>
+</body>
+</html>
