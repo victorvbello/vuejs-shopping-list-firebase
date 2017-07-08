@@ -16,7 +16,6 @@
 						v-bind:item-edit="itemEdit"></add-item>
 					<item-list 
 						v-bind:types="typesOfItems" 
-						v-bind:items="items" 
 						v-bind:date="today.en"
 						v-on:update-item="updateItem"
 						v-on:complete-item="completeItem"
@@ -30,6 +29,7 @@
 
 	<template id="add-item">
 		<form class="form-horizontal" v-on:submit.prevent="saveItem">
+			<div class="alert" v-if="alert.msg!=''" v-bind:class="alert.type">{{alert.msg}}</div>
 			<div class="form-group">
     		<label class="col-xs-2 control-label">Nombre:</label>
 		    <div class="col-xs-10">
@@ -72,12 +72,15 @@
 				</div>
 			</div>
 			<div class="panel-body">
+				<div class="text-center" v-if="cargando">
+					<span class="glyphicon glyphicon-refresh loader"></span>
+				</div>
 				<ul class="list-group">
 				  <li class="list-group-item" v-for="(item,index)  in filterList">
 				  	<div class="row">
 				  		<div class="col-xs-8">
 				  			<span class="label label-default">{{item.acount}}</span>
-				  			<span v-bind:style="(item.completed)?styles.through:''">{{item.name}}</span>
+				  			<span v-bind:class="{through:item.completed}">{{item.name}}</span>
 				  			<span class="label label-info">{{typeList[item.type]}}</span>
 				  		</div>
 				  		<div class="col-xs-4">
@@ -85,8 +88,11 @@
 			  					<button class="glyphicon glyphicon-pencil btn btn-primary btn-xs" v-on:click="editItem(item)"></button>
 			  					<button class="glyphicon glyphicon-ok btn btn-success btn-xs" 
 			  						v-bind:class="{disabled:item.completed}" 
-			  						v-on:click="checkItem(item)"></button>
-			  					<button class="glyphicon glyphicon-remove btn btn-danger btn-xs" v-on:click="deleteItem(index)"></button>
+			  						v-on:click="checkItem(true,item)"></button>
+			  					<button class="glyphicon glyphicon-repeat btn btn-info btn-xs" 
+			  						v-bind:class="{disabled:!item.completed}"
+			  						v-on:click="checkItem(false,item)"></button>
+			  					<button class="glyphicon glyphicon-remove btn btn-danger btn-xs" v-on:click="deleteItem(item)"></button>
 			  				</div>
 				  		</div>
 				  	</div>
@@ -98,6 +104,30 @@
 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.1.3/firebase.js"></script>
   <script type="text/javascript" src="./js/main.js"></script>
+  <style type="text/css">
+
+  	.through {
+			text-decoration: line-through;
+		}
+
+  	.loader {
+  		font-size: 25pt;
+  		color:#3498db;
+		  -webkit-animation: spin 2s linear infinite;
+		  animation: spin 2s linear infinite;
+		}
+
+		@-webkit-keyframes spin {
+		  0% { -webkit-transform: rotate(0deg); }
+		  100% { -webkit-transform: rotate(360deg); }
+		}
+
+		@keyframes spin {
+		  0% { transform: rotate(0deg); }
+		  100% { transform: rotate(360deg); }
+		}
+  </style>
 </body>
 </html>
