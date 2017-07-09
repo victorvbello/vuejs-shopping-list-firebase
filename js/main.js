@@ -8,8 +8,10 @@ var config = {
   };
 firebase.initializeApp(config);
 
-var db=firebase.database();
-var ref=db.ref('items/');
+var db=firebase.database(),
+		ref=db.ref('items/'),
+		auth=firebase.auth(),
+		googleProvider=new firebase.auth.GoogleAuthProvider();
 
 
 Vue.component('addItem',{
@@ -25,8 +27,8 @@ Vue.component('addItem',{
 				completed:false
 			},
 			alert:{
-				type:'',
-				msg:''
+				type:null,
+				msg:null
 			},
 			isNew:true
 		};
@@ -41,9 +43,9 @@ Vue.component('addItem',{
 			};
 			setTimeout(function(){
 				self.alert={
-					type:'',
-					msg:''
-				}
+					type:null,
+					msg:null
+				};
 			},2000)
 		},
 		saveItem:function(){
@@ -103,7 +105,8 @@ Vue.component('itemList',{
 					type:dbItems[key].type,
 					acount:dbItems[key].acount,
 					date:dbItems[key].date,
-					completed:dbItems[key].completed
+					completed:dbItems[key].completed,
+					user:dbItems[key].user
 				}
 				self.itemsList.unshift(element);
 			}
@@ -119,7 +122,7 @@ Vue.component('itemList',{
 			cargando:false
 		};
 	},
-	props:['types','date'],
+	props:['types','date','userLogin'],
 	computed:{
 		filterList:function(){
 			var self = this
@@ -145,25 +148,64 @@ Vue.component('itemList',{
 	}
 });
 
-new Vue({
+var vm =new Vue({
 	el:'#app-vue',
 	created:function(){
 		this.today=this.getFormatDate(new Date());
+		this.checkStateAuth();
 	},
 	data:{
+		isLogin:false,
 		today:'',
 		itemEdit:{},
 		typesOfItems:[
 				'Comida',
 				'Aseo',
 				'Entretenimiento'
-			]
+			],
+		user:{
+			id:null,
+			name:null,
+			email:null,
+			photo:null
+		}
 	},
 	methods:{
+		checkStateAuth:function(){
+			auth.onAuthStateChanged(function(user){
+				if(user){
+					vm.isLogin=true;
+					vm.user={
+						id:user.uid,
+		  			name:user.displayName,
+						email:user.email,
+						photo:user.photoURL
+		  		};
+				}else{
+					vm.isLogin=false;
+					vm.user={
+						id:null,
+						name:null,
+						email:null,
+						photo:null
+					};
+				}
+			})
+		},
+		userLogin:function(){
+			auth.signInWithPopup(googleProvider).catch(function(error) {
+		  	console.error('Error al iniciar sesión',error);
+			});
+		},
+		userLogout:function(){
+			auth.signOut().catch(function(error){
+				console.error('Error al cerrar sesión',error);
+			});
+		},
 		getFormatDate:function(date){
-			var day = date.getDate();
-	  	var month = date.getMonth()+1;
-	  	var year = date.getFullYear();
+			var day = date.getDate(),
+	  			month = date.getMonth()+1,
+	  			year = date.getFullYear(),
 			day=((day<10)?'0'+day:day);
 			month=((month<10)?'0'+month:month);
 			return {es:day+'/'+month+'/'+year,en:year+'-'+month+'-'+day};
@@ -184,6 +226,7 @@ new Vue({
 					acount:item.acount,
 					date:item.date,
 					completed:item.completed,
+					user:vm.user
 				});
 			}
 		},
@@ -191,8 +234,8 @@ new Vue({
 			this.itemEdit=item;
 		},
 		completeItem:function(event){
-			var status=event.status;
-			var item=event.item;
+			var status=event.status,
+					item=event.item;
 			item.completed=status;
 			return db.ref('items/'+item._id).update({
 				completed:item.completed
